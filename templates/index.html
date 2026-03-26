@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DivyaDrishti - AI Object Detection</title>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dark-mode.css') }}">
+</head>
+
+<body class="page-transition">
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h1 class="header-title">
+                        🔍 DivyaDrishti
+                    </h1>
+                    <p class="header-subtitle">AI-Powered Object Detection with Voice Feedback</p>
+                </div>
+                <div class="flex" style="gap: 1rem;">
+                    <!-- TTS Status Badge -->
+                    <div class="live-badge" id="ttsStatusBadge">
+                        <span id="ttsStatusIcon">🔊</span>
+                        <span id="ttsStatusText">TTS Ready</span>
+                    </div>
+                    <!-- Dark Mode Toggle -->
+                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                        <span class="theme-icon sun-icon" id="themeIcon">☀️</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Stats Grid -->
+        <div class="stats-grid stagger-item">
+            <div class="stat-card hover-lift">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value counter" id="detectedCount">0</div>
+                <div class="stat-label">Detected Objects</div>
+            </div>
+            <div class="stat-card hover-lift">
+                <div class="stat-icon">👁️</div>
+                <div class="stat-value counter" id="trackingCount">0</div>
+                <div class="stat-label">Tracking</div>
+            </div>
+            <div class="stat-card hover-lift">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-value counter" id="fpsValue">0</div>
+                <div class="stat-label">FPS</div>
+            </div>
+            <div class="stat-card hover-lift">
+                <div class="stat-icon" id="statusIcon">🔴</div>
+                <div class="stat-value" style="font-size: 1.5rem;" id="statusText">OFFLINE</div>
+                <div class="stat-label">Stream Status</div>
+            </div>
+        </div>
+
+        <!-- Main Grid Layout -->
+        <div class="grid"
+            style="grid-template-columns: 2fr 1fr; gap: var(--spacing-lg); margin-top: var(--spacing-lg);">
+            <!-- Video Feed -->
+            <div class="glass-card stagger-item">
+                <h3>📹 Live Video Feed</h3>
+                <div class="video-container">
+                    <img id="videoFeed" class="video-feed" src="{{ url_for('video_feed') }}" alt="Video Feed">
+                    <div class="video-overlay">
+                        <div class="live-badge">
+                            <div class="live-dot"></div>
+                            <span>LIVE</span>
+                        </div>
+                        <div class="fps-counter">
+                            <span id="fpsCounter">0</span> FPS
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detections Panel -->
+            <div class="glass-card stagger-item">
+                <h3>✅ Confirmed Detections</h3>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: var(--spacing-md);">
+                    Objects held steady for 3+ seconds
+                </p>
+                <div class="detection-list" id="detectionsList">
+                    <div class="detection-card pending">
+                        <div class="detection-info">
+                            <div class="detection-name">No objects detected</div>
+                            <div class="detection-meta">Hold objects steady for 3 seconds</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TTS Control Panel -->
+        <div class="glass-card stagger-item" style="margin-top: var(--spacing-lg);">
+            <h3>🔊 Text-to-Speech Controls</h3>
+            <div class="grid grid-2">
+                <!-- TTS Toggle -->
+                <div>
+                    <div class="flex-between" style="margin-bottom: var(--spacing-md);">
+                        <span style="font-weight: 600;">Enable TTS</span>
+                        <div class="toggle-switch" id="ttsToggle">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+
+                    <!-- Volume Slider -->
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Volume</span>
+                            <span id="volumeValue">100%</span>
+                        </div>
+                        <input type="range" class="slider" id="volumeSlider" min="0" max="100" value="100">
+                    </div>
+
+                    <!-- Speed Slider -->
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Speech Rate</span>
+                            <span id="rateValue">200 WPM</span>
+                        </div>
+                        <input type="range" class="slider" id="rateSlider" min="50" max="300" value="200">
+                    </div>
+                </div>
+
+                <!-- TTS Test & Info -->
+                <div>
+                    <div
+                        style="background: var(--bg-glass); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-md);">
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                            <strong>Voice:</strong> Samantha (Female)<br>
+                            <strong>Status:</strong> <span id="ttsStatus">Ready</span><br>
+                            <strong>Cooldown:</strong> 4 seconds
+                        </div>
+                        <div id="speakingIndicator" style="display: none; margin-top: var(--spacing-sm);">
+                            <div class="speaking-indicator">
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="testTtsBtn" style="width: 100%;">
+                        🎤 Test Voice
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex-center" style="gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+            <button class="btn btn-secondary" id="resetBtn">
+                🔄 Reset Tracking
+            </button>
+            <button class="btn btn-secondary" id="refreshBtn">
+                ↻ Refresh Page
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tts-controls.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+
+</html>
